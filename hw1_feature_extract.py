@@ -38,12 +38,6 @@ def d(points, i, j):
 
     return dist(points[i], points[j])
 
-# Midpoint between 0-indexed landmark points (0..21).
-def midpoint(points, i, j):
-    return (
-        (points[i][0] + points[j][0]) / 2.0,
-        (points[i][1] + points[j][1]) / 2.0,
-    )
 
 # Compute the 7 required feature ratios.
 def extract_features(points):
@@ -52,12 +46,11 @@ def extract_features(points):
 
     eye_len_left = d(points, 9, 10)
     eye_len_right = d(points, 11, 12)
-    c_left = midpoint(points, 9, 10)
-    c_right = midpoint(points, 11, 12)
+
 
     return {
         "eye_length_ratio": max(eye_len_left, eye_len_right) / W,
-        "eye_distance_ratio": dist(c_left, c_right) / W,
+        "eye_distance_ratio": d(points, 0, 1) / W,
         "nose_ratio": d(points, 15, 16) / N,
         "lip_size_ratio": d(points, 2, 3) / d(points, 17, 18),
         "lip_length_ratio": d(points, 2, 3) / N,
