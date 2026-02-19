@@ -1,0 +1,64 @@
+HW2 Report: Gender Classification from Face Images Using KNN
+
+Introduction
+This project applies a K-Nearest Neighbors (KNN) classifier to predict gender from face landmark features. The workflow includes feature extraction from landmark points, model training/testing with Scikit-learn, and evaluation using confusion matrix, accuracy, precision, and recall.
+
+Problem Description
+The goal is to classify each face image as either male or female using geometric facial features computed from 22 landmark points. KNN is used as the supervised classifier, and performance is measured on a held-out test set.
+
+Data Sets and Experiment Design
+The data comes from the AR face database subset used in class:
+- 10 people total: 5 male (m-001 to m-005) and 5 female (w-001 to w-005)
+- 4 images per person
+- Total samples: 40 images
+
+Each image has a .pts file containing 22 (x, y) coordinates.
+
+Train/Test Split (person-level split)
+- Training people: m-001, m-002, m-003, w-001, w-002, w-003 (24 images)
+- Testing people: m-004, m-005, w-004, w-005 (16 images)
+
+Defining Features and Feature Extraction
+Seven ratio-based features were extracted from landmark points using Euclidean distance:
+1. Eye length ratio: max(d(9,10), d(11,12)) / d(8,13)
+2. Eye distance ratio: d(0,1) / d(8,13)
+3. Nose ratio: d(15,16) / d(20,21)
+4. Lip size ratio: d(2,3) / d(17,18)
+5. Lip length ratio: d(2,3) / d(20,21)
+6. Eyebrow length ratio: max(d(4,5), d(6,7)) / d(8,13)
+7. Aggressive ratio: d(10,19) / d(20,21)
+
+Feature extraction script: assign1/hw1_feature_extract.py
+Output CSV: assign1/outputs/features.csv
+
+Results and Analysis
+KNN was implemented with standardization (StandardScaler + KNeighborsClassifier).
+
+K Selection
+Tested k = [1, 3, 5, 7, 9] and selected the best based on accuracy (then precision/recall tie-breakers). Best result occurred at k = 9.
+
+Final Test Results (k = 9)
+Confusion matrix (rows = true, columns = predicted, labels = [male, female]):
+[[7, 1],
+ [5, 3]]
+
+Metrics (male as positive class):
+- Accuracy: 0.6250
+- Precision: 0.5833
+- Recall: 0.8750
+
+Discussion
+- The model performs better than chance but remains limited (62.5% accuracy).
+- Recall for male is high, meaning most male samples are detected.
+- Female samples are more often misclassified (5 of 8 female test images predicted as male).
+- Likely causes: very small training set and overlap of handcrafted geometric features between classes.
+
+Conclusion
+This assignment successfully implemented gender classification from face landmark features using KNN. All required deliverables were produced: feature extraction, classification pipeline, confusion matrix, and core evaluation metrics. The current setup shows moderate performance; larger training data or additional features would likely improve results.
+
+References
+1. AR Face Database (course-provided subset)
+2. Scikit-learn documentation: KNeighborsClassifier
+   https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
+3. Scikit-learn metrics documentation
+   https://scikit-learn.org/stable/modules/model_evaluation.html
