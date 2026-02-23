@@ -75,14 +75,15 @@ def find_pts_files(root):
 # Extract features for all images and write a CSV.
 def main():
     script_dir = Path(__file__).resolve().parent
+    project_dir = script_dir.parent
 
     root = Path("Face Database")
     if not root.is_absolute():
-        root = (script_dir / root).resolve()
+        root = (project_dir / root).resolve()
 
     out_csv = Path("outputs/features.csv")
     if not out_csv.is_absolute():
-        out_csv = (script_dir / out_csv).resolve()
+        out_csv = (project_dir / out_csv).resolve()
     out_csv.parent.mkdir(parents=True, exist_ok=True)
 
     rows = []

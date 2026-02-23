@@ -7,7 +7,6 @@ KNN, and reports confusion matrix, accuracy, precision, and recall.
 
 from __future__ import annotations
 
-import argparse
 from pathlib import Path
 
 import pandas as pd
@@ -73,41 +72,19 @@ def evaluate_k(x_train, y_train, x_test, y_test, k: int):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="HW2 KNN gender classification from feature CSV")
-    parser.add_argument(
-        "--features-csv",
-        type=Path,
-        default=Path("outputs/features.csv"),
-        help="Path to HW1 feature CSV (default: outputs/features.csv relative to this script)",
-    )
-    parser.add_argument("--k", type=int, default=3, help="Number of neighbors for KNN (default: 3)")
-    parser.add_argument(
-        "--k-values",
-        type=str,
-        default="",
-        help="Comma-separated k values to tune (example: 1,3,5,7). "
-        "If provided, best k is selected by accuracy, then precision, then recall.",
-    )
-    parser.add_argument(
-        "--predictions-out",
-        type=Path,
-        default=Path("outputs/hw2_test_predictions.csv"),
-        help="Where to write test predictions CSV",
-    )
-    args = parser.parse_args()
-
     script_dir = Path(__file__).resolve().parent
+    features_csv = Path("outputs/features.csv")
+    hw2_out_dir = Path("outputs/hw2")
+    k_values = [1, 3, 5, 7, 9]
 
-    features_csv = args.features_csv
     if not features_csv.is_absolute():
         features_csv = (script_dir / features_csv).resolve()
     if not features_csv.exists():
         raise FileNotFoundError(f"Feature CSV not found: {features_csv}")
 
-    pred_out = args.predictions_out
-    if not pred_out.is_absolute():
-        pred_out = (script_dir / pred_out).resolve()
-    pred_out.parent.mkdir(parents=True, exist_ok=True)
+    if not hw2_out_dir.is_absolute():
+        hw2_out_dir = (script_dir / hw2_out_dir).resolve()
+    hw2_out_dir.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(features_csv)
     required = {"person_id", "image_id", *FEATURE_COLS}
@@ -117,7 +94,7 @@ def main() -> None:
 
     df["gender"] = df["person_id"].map(gender_from_person_id)
 
-    train_df, test_df, train_people, test_people = build_person_split(df)
+    train_df, test_df, _, _ = build_person_split(df)
 
     x_train = train_df[FEATURE_COLS].to_numpy()
     y_train = train_df["gender"].to_numpy()
@@ -125,14 +102,9 @@ def main() -> None:
     y_test = test_df["gender"].to_numpy()
 
     max_k = len(train_df)
-    if args.k_values.strip():
-        requested = [int(v.strip()) for v in args.k_values.split(",") if v.strip()]
-    else:
-        requested = [args.k]
-
-    valid_ks = sorted(set(k for k in requested if k >= 1 and k <= max_k))
+    valid_ks = sorted(set(k for k in k_values if k >= 1 and k <= max_k))
     if not valid_ks:
-        raise ValueError(f"No valid k values. Must be between 1 and {max_k}. Got: {requested}")
+        raise ValueError(f"No valid k values. Must be between 1 and {max_k}. Got: {k_values}")
 
     results = [evaluate_k(x_train, y_train, x_test, y_test, k) for k in valid_ks]
     best = max(results, key=lambda r: (r["accuracy"], r["precision"], r["recall"], -r["k"]))
@@ -146,20 +118,10 @@ def main() -> None:
     recall = best["recall"]
 
     print("=== HW2 Gender Classification (KNN) ===")
-    print(f"features_csv : {features_csv}")
-    if len(valid_ks) > 1:
-        print(f"k_candidates : {valid_ks}")
     print(f"k_selected   : {chosen_k}")
-    print(f"train_people : {train_people}")
-    print(f"test_people  : {test_people}")
+    print(f"k_tested     : {valid_ks}")
     print(f"train_rows   : {len(train_df)}")
     print(f"test_rows    : {len(test_df)}")
-    if len(valid_ks) > 1:
-        print()
-        print("K tuning results:")
-        print("k\taccuracy\tprecision\trecall")
-        for r in results:
-            print(f"{r['k']}\t{r['accuracy']:.4f}\t{r['precision']:.4f}\t{r['recall']:.4f}")
     print()
     print("Confusion Matrix (rows=true, cols=pred, labels=[male, female]):")
     print(cm)
@@ -168,10 +130,38 @@ def main() -> None:
     print(f"Precision : {precision:.4f} (male as positive class)")
     print(f"Recall    : {recall:.4f} (male as positive class)")
 
-    out_df = test_df[["person_id", "image_id", "gender"]].rename(columns={"gender": "actual_gender"})
-    out_df["predicted_gender"] = y_pred
-    out_df.to_csv(pred_out, index=False)
-    print(f"\nWrote predictions: {pred_out}")
+    base_pred_df = test_df[["person_id", "image_id", "gender"]].rename(columns={"gender": "actual_gender"})
+
+    for r in results:
+        pred_path = hw2_out_dir / f"hw2_test_predictions_k{r['k']}.csv"
+        pred_df = base_pred_df.copy()
+        pred_df["predicted_gender"] = r["y_pred"]
+        pred_df["k_used"] = r["k"]
+        pred_df.to_csv(pred_path, index=False)
+
+    best_pred_out = hw2_out_dir / f"hw2_test_predictions_best_k{chosen_k}.csv"
+    best_out_df = base_pred_df.copy()
+    best_out_df["predicted_gender"] = y_pred
+    best_out_df["k_used"] = chosen_k
+    best_out_df.to_csv(best_pred_out, index=False)
+
+    results_df = pd.DataFrame(
+        [
+            {
+                "k": r["k"],
+                "accuracy": round(r["accuracy"], 4),
+                "precision_male": round(r["precision"], 4),
+                "recall_male": round(r["recall"], 4),
+            }
+            for r in results
+        ]
+    )
+    results_out = hw2_out_dir / "hw2_k_results.csv"
+    results_df.to_csv(results_out, index=False)
+
+    print(f"\nWrote k results: {results_out}")
+    print(f"Wrote best predictions: {best_pred_out}")
+    print(f"Wrote per-k predictions in: {hw2_out_dir}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,17 @@
+person_id,image_id,actual_gender,predicted_gender,k_used
+m-004,m-004-01,male,male,5
+m-004,m-004-02,male,female,5
+m-004,m-004-03,male,male,5
+m-004,m-004-05,male,male,5
+m-005,m-005-01,male,male,5
+m-005,m-005-02,male,female,5
+m-005,m-005-03,male,male,5
+m-005,m-005-05,male,female,5
+w-004,w-004-01,female,male,5
+w-004,w-004-02,female,female,5
+w-004,w-004-03,female,male,5
+w-004,w-004-05,female,female,5
+w-005,w-005-01,female,male,5
+w-005,w-005-02,female,female,5
+w-005,w-005-03,female,male,5
+w-005,w-005-05,female,male,5
