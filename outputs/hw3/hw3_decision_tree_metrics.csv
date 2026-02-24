@@ -1,0 +1,2 @@
+criterion,random_state,train_rows,test_rows,tree_depth,leaf_nodes,accuracy,precision_male,recall_male,cm_true_male_pred_male,cm_true_male_pred_female,cm_true_female_pred_male,cm_true_female_pred_female
+entropy,42,24,16,4,5,0.4375,0.4286,0.375,3,5,4,4

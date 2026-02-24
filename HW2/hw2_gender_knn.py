@@ -73,17 +73,18 @@ def evaluate_k(x_train, y_train, x_test, y_test, k: int):
 
 def main() -> None:
     script_dir = Path(__file__).resolve().parent
+    project_dir = script_dir.parent
     features_csv = Path("outputs/features.csv")
     hw2_out_dir = Path("outputs/hw2")
     k_values = [1, 3, 5, 7, 9]
 
     if not features_csv.is_absolute():
-        features_csv = (script_dir / features_csv).resolve()
+        features_csv = (project_dir / features_csv).resolve()
     if not features_csv.exists():
         raise FileNotFoundError(f"Feature CSV not found: {features_csv}")
 
     if not hw2_out_dir.is_absolute():
-        hw2_out_dir = (script_dir / hw2_out_dir).resolve()
+        hw2_out_dir = (project_dir / hw2_out_dir).resolve()
     hw2_out_dir.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(features_csv)
