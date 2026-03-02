@@ -73,7 +73,7 @@ def main() -> None:
         raise ValueError(f"Missing required columns in {features_csv.name}: {sorted(missing)}")
 
     df["gender"] = df["person_id"].map(gender_from_person_id)
-    train_df, test_df, train_people, test_people = build_person_split(df)
+    train_df, test_df, _, _ = build_person_split(df)
 
     x_train = train_df[FEATURE_COLS].to_numpy()
     y_train = train_df["gender"].to_numpy()
@@ -90,19 +90,9 @@ def main() -> None:
     precision = precision_score(y_test, y_pred, pos_label="male", zero_division=0)
     recall = recall_score(y_test, y_pred, pos_label="male", zero_division=0)
 
-    print("=== HW3 Gender Classification (Decision Tree) ===")
-    print("criterion    : entropy")
-    print("random_state : 42")
-    print(f"train_rows   : {len(train_df)}")
-    print(f"test_rows    : {len(test_df)}")
-    print(f"train_people : {train_people}")
-    print(f"test_people  : {test_people}")
-    print(f"tree_depth   : {dt.get_depth()}")
-    print(f"leaf_nodes   : {dt.get_n_leaves()}")
-    print()
+    print("HW3 Decision Tree results")
     print("Confusion Matrix (rows=true, cols=pred, labels=[male, female]):")
     print(cm)
-    print()
     print(f"Accuracy  : {acc:.4f}")
     print(f"Precision : {precision:.4f} (male as positive class)")
     print(f"Recall    : {recall:.4f} (male as positive class)")
@@ -143,9 +133,10 @@ def main() -> None:
     ).sort_values("importance", ascending=False)
     fi_df.to_csv(fi_out, index=False)
 
-    print(f"\nWrote metrics: {metrics_out}")
-    print(f"Wrote predictions: {pred_out}")
-    print(f"Wrote feature importances: {fi_out}")
+    print("\nSaved:")
+    print(f"- {metrics_out}")
+    print(f"- {pred_out}")
+    print(f"- {fi_out}")
 
 
 if __name__ == "__main__":
